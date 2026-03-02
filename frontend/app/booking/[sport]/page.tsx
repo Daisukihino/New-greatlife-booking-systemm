@@ -520,7 +520,7 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
                                         name="customer_name"
                                         value={formData.customer_name}
                                         onChange={handleInputChange}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                       className="w-full px-4 py-3 border text-black border-gray-300 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         placeholder="Enter your full name"
                                     />
                                     {errors.customer_name && <p className="text-red-600 text-sm mt-1">{errors.customer_name}</p>}
@@ -533,7 +533,7 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
                                         name="email"
                                         value={formData.email}
                                         onChange={handleInputChange}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-3 border text-black border-gray-300 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         placeholder="Enter your email"
                                     />
                                     <small className="text-gray-500 block mt-1">Only Gmail, Yahoo, Outlook, and other major providers accepted</small>
@@ -548,7 +548,7 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
                                         value={formData.phone}
                                         onChange={handleInputChange}
                                         maxLength={11}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-3 border text-black border-gray-300 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         placeholder="Enter your 11-digit phone number"
                                     />
                                     <small className="text-gray-500 block mt-1">Must be exactly 11 digits</small>
@@ -569,7 +569,7 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
                                         onChange={handleInputChange}
                                         min={1}
                                         max={15}
-                                        className="w-full px-4 py-3 border border-black rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent block text-black font-bold"
+                                        className="w-full px-4 py-3 border text-black border-gray-300 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent block text-black font-bold"
                                         placeholder="How many people? (Max 15)"
                                     />
                                     {errors.people_count && <p className="text-red-600 text-sm mt-1">{errors.people_count}</p>}
@@ -585,7 +585,7 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
                                                 name="start_time"
                                                 value={formData.start_time}
                                                 onChange={handleInputChange}
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 block text-black font-bold"
+                                               className="w-full px-4 py-3 border text-black border-gray-300 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </div>
                                         <div>
@@ -595,7 +595,7 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
                                                 name="end_time"
                                                 value={formData.end_time}
                                                 onChange={handleInputChange}
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 block text-black font-bold"
+                                                className="w-full px-4 py-3 border text-black border-gray-300 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </div>
                                     </div>
@@ -610,7 +610,7 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
                                             name="rental_option"
                                             value={formData.rental_option}
                                             onChange={handleInputChange}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white block text-black font-bold"
+                                           className="w-full px-4 py-3 border text-black border-gray-300 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         >
                                             <option value="" disabled>Choose a configuration</option>
                                             {RENTAL_OPTIONS.map(opt => (
