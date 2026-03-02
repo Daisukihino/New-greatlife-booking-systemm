@@ -17,7 +17,38 @@ import {
 import emailjs from '@emailjs/browser';
 
 const normalizeSportKey = (value?: string | null) =>
-    (value || '').toLowerCase().trim().replace(/\s+/g, '-');
+    (value || '')
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
+const removeGenericSportWords = (value: string) =>
+    value
+        .replace(/\b(court|sports?)\b/g, '')
+        .replace(/-+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
+const getSportCandidates = (value?: string | null) => {
+    const normalized = normalizeSportKey(value);
+    const simplified = removeGenericSportWords(normalized);
+    const noDash = normalized.replace(/-/g, '');
+    const simplifiedNoDash = simplified.replace(/-/g, '');
+    return [normalized, simplified, noDash, simplifiedNoDash].filter(Boolean);
+};
+
+const isSportMatch = (routeKey: string, sportValue?: string | null) => {
+    const routeCandidates = getSportCandidates(routeKey);
+    const sportCandidates = getSportCandidates(sportValue);
+
+    return sportCandidates.some((sportCandidate) =>
+        routeCandidates.some((routeCandidate) =>
+            sportCandidate === routeCandidate ||
+            sportCandidate.startsWith(routeCandidate) ||
+            routeCandidate.startsWith(sportCandidate)
+        )
+    );
+};
 
 type ConfirmationBookingData = CreateBookingData & { id: number };
 
@@ -32,6 +63,7 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [bookingSuccess, setBookingSuccess] = useState(false);
     const [bookingId, setBookingId] = useState('');
+    const [loadError, setLoadError] = useState<string>('');
 
     const [formData, setFormData] = useState({
         customer_name: '',
@@ -92,6 +124,7 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
     useEffect(() => {
         const loadSportData = async () => {
             setLoading(true);
+            setLoadError('');
             const [sportResponse, blockedResponse] = await Promise.all([
                 api.getSports(),
                 api.getBlockedSlots()
@@ -99,17 +132,24 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
 
             if (sportResponse.success && sportResponse.data) {
                 const foundSport = sportResponse.data.find((s) => {
-                    const normalizedName = normalizeSportKey(s.name);
-                    const normalizedDisplay = normalizeSportKey(s.display_name);
-                    return normalizedName === sportKey || normalizedDisplay === sportKey;
+                    return isSportMatch(sportKey, s.name) || isSportMatch(sportKey, s.display_name);
                 });
                 if (foundSport) {
                     setSport(foundSport);
+                } else {
+                    setSport(null);
+                    setLoadError(`No matching sport was found for "${sportParam}".`);
                 }
+            } else {
+                setSport(null);
+                setLoadError(sportResponse.error || 'Unable to load sports. Please try again.');
             }
 
             if (blockedResponse.success && blockedResponse.data) {
                 setBlockedSlots(blockedResponse.data);
+            } else if (blockedResponse.error) {
+                // Non-blocking: users can still proceed with booking sport data.
+                console.warn('Unable to load blocked slots:', blockedResponse.error);
             }
             setLoading(false);
         };
@@ -117,7 +157,7 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
         void loadSportData();
         // Initialize EmailJS
         emailjs.init(process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || '');
-    }, [sportKey]);
+    }, [sportKey, sportParam]);
 
     useEffect(() => {
         if (loading || !sport) return;
@@ -359,6 +399,7 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <h1 className="text-2xl font-bold text-gray-900 mb-4">Sport not found</h1>
+                    {loadError && <p className="text-gray-600 mb-4">{loadError}</p>}
                     <button
                         onClick={() => router.push('/')}
                         className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
