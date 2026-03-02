@@ -39,14 +39,24 @@ class ApiClient {
                 },
             });
 
-            const contentType = response.headers.get('content-type') || '';
-            const isJson = contentType.includes('application/json');
-            const payload = isJson ? await response.json() : null;
+            const rawBody = await response.text();
+            let payload: ApiResponse<T> | null = null;
+
+            if (rawBody) {
+                try {
+                    payload = JSON.parse(rawBody) as ApiResponse<T>;
+                } catch {
+                    payload = null;
+                }
+            }
 
             if (!response.ok) {
+                const fallbackMessage = rawBody
+                    ? rawBody.replace(/\s+/g, ' ').trim().slice(0, 220)
+                    : `Request failed with status ${response.status}`;
                 return {
                     success: false,
-                    error: payload?.error || `Request failed with status ${response.status}`,
+                    error: payload?.error || fallbackMessage,
                 };
             }
 
