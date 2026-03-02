@@ -11,7 +11,13 @@ import type {
     BlockedSlot
 } from './types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const normalizeBaseUrl = (value?: string) => {
+    const trimmed = value?.trim();
+    if (!trimmed) return '/api';
+    return trimmed.replace(/\/+$/, '');
+};
+
+const API_URL = normalizeBaseUrl(process.env.NEXT_PUBLIC_API_URL);
 
 class ApiClient {
     private baseUrl: string;
@@ -33,16 +39,25 @@ class ApiClient {
                 },
             });
 
-            const data = await response.json();
+            const contentType = response.headers.get('content-type') || '';
+            const isJson = contentType.includes('application/json');
+            const payload = isJson ? await response.json() : null;
 
             if (!response.ok) {
                 return {
                     success: false,
-                    error: data.error || 'An error occurred',
+                    error: payload?.error || `Request failed with status ${response.status}`,
                 };
             }
 
-            return data;
+            if (!payload) {
+                return {
+                    success: false,
+                    error: 'Invalid API response format',
+                };
+            }
+
+            return payload;
         } catch (error) {
             console.error('API request failed:', error);
             return {

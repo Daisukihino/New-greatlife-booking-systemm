@@ -1,8 +1,17 @@
 import type { NextConfig } from "next";
 
+const backendOrigin = (process.env.BACKEND_ORIGIN || 'http://localhost:5000').replace(/\/+$/, '');
+
 const nextConfig: NextConfig = {
-  /* config options here */
   reactCompiler: true,
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${backendOrigin}/api/:path*`,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
