@@ -156,7 +156,14 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
 
         void loadSportData();
         // Initialize EmailJS
-        emailjs.init(process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || '');
+       const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
+if (!publicKey) {
+  console.error('Missing NEXT_PUBLIC_EMAILJS_PUBLIC_KEY (EmailJS public key).');
+  return;
+}
+
+emailjs.init({ publicKey });
     }, [sportKey, sportParam]);
 
     useEffect(() => {
@@ -310,12 +317,14 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
                 booking_id: bookingData.id
             };
 
-            await emailjs.send(
-                process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || '',
-                process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || '',
-                templateParams
-            );
+           const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
 
+if (!serviceId || !templateId) {
+  throw new Error('Missing EmailJS service/template ID in env vars.');
+}
+
+await emailjs.send(serviceId, templateId, templateParams);
             console.log('Confirmation email sent successfully');
         } catch (error) {
             console.error('Failed to send confirmation email:', error);
