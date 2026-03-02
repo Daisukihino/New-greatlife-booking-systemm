@@ -17,38 +17,7 @@ import {
 import emailjs from '@emailjs/browser';
 
 const normalizeSportKey = (value?: string | null) =>
-    (value || '')
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-
-const removeGenericSportWords = (value: string) =>
-    value
-        .replace(/\b(court|sports?)\b/g, '')
-        .replace(/-+/g, '-')
-        .replace(/^-+|-+$/g, '');
-
-const getSportCandidates = (value?: string | null) => {
-    const normalized = normalizeSportKey(value);
-    const simplified = removeGenericSportWords(normalized);
-    const noDash = normalized.replace(/-/g, '');
-    const simplifiedNoDash = simplified.replace(/-/g, '');
-    return [normalized, simplified, noDash, simplifiedNoDash].filter(Boolean);
-};
-
-const isSportMatch = (routeKey: string, sportValue?: string | null) => {
-    const routeCandidates = getSportCandidates(routeKey);
-    const sportCandidates = getSportCandidates(sportValue);
-
-    return sportCandidates.some((sportCandidate) =>
-        routeCandidates.some((routeCandidate) =>
-            sportCandidate === routeCandidate ||
-            sportCandidate.startsWith(routeCandidate) ||
-            routeCandidate.startsWith(sportCandidate)
-        )
-    );
-};
+    (value || '').toLowerCase().trim().replace(/\s+/g, '-');
 
 type ConfirmationBookingData = CreateBookingData & { id: number };
 
@@ -63,7 +32,6 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [bookingSuccess, setBookingSuccess] = useState(false);
     const [bookingId, setBookingId] = useState('');
-    const [loadError, setLoadError] = useState<string>('');
 
     const [formData, setFormData] = useState({
         customer_name: '',
@@ -124,7 +92,6 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
     useEffect(() => {
         const loadSportData = async () => {
             setLoading(true);
-            setLoadError('');
             const [sportResponse, blockedResponse] = await Promise.all([
                 api.getSports(),
                 api.getBlockedSlots()
@@ -132,39 +99,25 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
 
             if (sportResponse.success && sportResponse.data) {
                 const foundSport = sportResponse.data.find((s) => {
-                    return isSportMatch(sportKey, s.name) || isSportMatch(sportKey, s.display_name);
+                    const normalizedName = normalizeSportKey(s.name);
+                    const normalizedDisplay = normalizeSportKey(s.display_name);
+                    return normalizedName === sportKey || normalizedDisplay === sportKey;
                 });
                 if (foundSport) {
                     setSport(foundSport);
-                } else {
-                    setSport(null);
-                    setLoadError(`No matching sport was found for "${sportParam}".`);
                 }
-            } else {
-                setSport(null);
-                setLoadError(sportResponse.error || 'Unable to load sports. Please try again.');
             }
 
             if (blockedResponse.success && blockedResponse.data) {
                 setBlockedSlots(blockedResponse.data);
-            } else if (blockedResponse.error) {
-                // Non-blocking: users can still proceed with booking sport data.
-                console.warn('Unable to load blocked slots:', blockedResponse.error);
             }
             setLoading(false);
         };
 
         void loadSportData();
         // Initialize EmailJS
-       const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
-
-if (!publicKey) {
-  console.error('Missing NEXT_PUBLIC_EMAILJS_PUBLIC_KEY (EmailJS public key).');
-  return;
-}
-
-emailjs.init({ publicKey });
-    }, [sportKey, sportParam]);
+        emailjs.init(process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || '');
+    }, [sportKey]);
 
     useEffect(() => {
         if (loading || !sport) return;
@@ -246,7 +199,7 @@ emailjs.init({ publicKey });
         }
 
         if (formData.people_count < 1 || formData.people_count > 15) {
-            newErrors.people_count = `Number of people must be between 1 and 15`;
+            newErrors.people_count = 'Number of people must be between 1 and 15';
         }
 
         // Only require rental option for certain sports (Basketball/Badminton usually have options)
@@ -317,14 +270,12 @@ emailjs.init({ publicKey });
                 booking_id: bookingData.id
             };
 
-           const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
-const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+            await emailjs.send(
+                process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || '',
+                process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || '',
+                templateParams
+            );
 
-if (!serviceId || !templateId) {
-  throw new Error('Missing EmailJS service/template ID in env vars.');
-}
-
-await emailjs.send(serviceId, templateId, templateParams);
             console.log('Confirmation email sent successfully');
         } catch (error) {
             console.error('Failed to send confirmation email:', error);
@@ -408,7 +359,6 @@ await emailjs.send(serviceId, templateId, templateParams);
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <h1 className="text-2xl font-bold text-gray-900 mb-4">Sport not found</h1>
-                    {loadError && <p className="text-gray-600 mb-4">{loadError}</p>}
                     <button
                         onClick={() => router.push('/')}
                         className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
@@ -529,7 +479,7 @@ await emailjs.send(serviceId, templateId, templateParams);
                                         name="customer_name"
                                         value={formData.customer_name}
                                         onChange={handleInputChange}
-                                       className="w-full px-4 py-3 border text-black border-gray-300 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                         className="w-full px-4 py-3 border text-black border-gray-300 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         placeholder="Enter your full name"
                                     />
                                     {errors.customer_name && <p className="text-red-600 text-sm mt-1">{errors.customer_name}</p>}
@@ -542,7 +492,7 @@ await emailjs.send(serviceId, templateId, templateParams);
                                         name="email"
                                         value={formData.email}
                                         onChange={handleInputChange}
-                                        className="w-full px-4 py-3 border text-black border-gray-300 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                         className="w-full px-4 py-3 border text-black border-gray-300 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         placeholder="Enter your email"
                                     />
                                     <small className="text-gray-500 block mt-1">Only Gmail, Yahoo, Outlook, and other major providers accepted</small>
@@ -557,7 +507,7 @@ await emailjs.send(serviceId, templateId, templateParams);
                                         value={formData.phone}
                                         onChange={handleInputChange}
                                         maxLength={11}
-                                        className="w-full px-4 py-3 border text-black border-gray-300 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                         className="w-full px-4 py-3 border text-black border-gray-300 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         placeholder="Enter your 11-digit phone number"
                                     />
                                     <small className="text-gray-500 block mt-1">Must be exactly 11 digits</small>
@@ -578,7 +528,7 @@ await emailjs.send(serviceId, templateId, templateParams);
                                         onChange={handleInputChange}
                                         min={1}
                                         max={15}
-                                        className="w-full px-4 py-3 border text-black border-gray-300 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent block text-black font-bold"
+                                         className="w-full px-4 py-3 border text-black border-gray-300 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent block text-black font-bold"
                                         placeholder="How many people? (Max 15)"
                                     />
                                     {errors.people_count && <p className="text-red-600 text-sm mt-1">{errors.people_count}</p>}
@@ -594,7 +544,7 @@ await emailjs.send(serviceId, templateId, templateParams);
                                                 name="start_time"
                                                 value={formData.start_time}
                                                 onChange={handleInputChange}
-                                               className="w-full px-4 py-3 border text-black border-gray-300 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                className="w-full px-4 py-3 border text-black border-gray-300 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             />
                                         </div>
                                         <div>
@@ -619,7 +569,7 @@ await emailjs.send(serviceId, templateId, templateParams);
                                             name="rental_option"
                                             value={formData.rental_option}
                                             onChange={handleInputChange}
-                                           className="w-full px-4 py-3 border text-black border-gray-300 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            className="w-full px-4 py-3 border text-black border-gray-300 placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white block font-bold"
                                         >
                                             <option value="" disabled>Choose a configuration</option>
                                             {RENTAL_OPTIONS.map(opt => (
