@@ -19,11 +19,6 @@ import emailjs from '@emailjs/browser';
 const normalizeSportKey = (value?: string | null) =>
     (value || '').toLowerCase().trim().replace(/\s+/g, '-');
 
-const EMAILJS_PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY?.trim() || '';
-const EMAILJS_SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID?.trim() || '';
-const EMAILJS_TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID?.trim() || '';
-const EMAILJS_CONFIGURED = Boolean(EMAILJS_PUBLIC_KEY && EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID);
-
 type ConfirmationBookingData = CreateBookingData & { id: number };
 
 export default function BookingPage({ params }: { params: Promise<{ sport: string }> }) {
@@ -120,12 +115,8 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
         };
 
         void loadSportData();
-        // Initialize EmailJS only when keys are available.
-        if (EMAILJS_PUBLIC_KEY) {
-            emailjs.init(EMAILJS_PUBLIC_KEY);
-        } else {
-            console.warn('EmailJS public key is missing. Skipping email initialization.');
-        }
+        // Initialize EmailJS
+        emailjs.init(process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || '');
     }, [sportKey]);
 
     useEffect(() => {
@@ -266,11 +257,6 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
     }, [termsAccepted, privacyAccepted, errors.agreements]);
 
     const sendConfirmationEmail = async (bookingData: ConfirmationBookingData) => {
-        if (!EMAILJS_CONFIGURED) {
-            console.warn('EmailJS is not fully configured. Skipping confirmation email send.');
-            return;
-        }
-
         try {
             const templateParams = {
                 customer_name: bookingData.customer_name,
@@ -285,8 +271,8 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
             };
 
             await emailjs.send(
-                EMAILJS_SERVICE_ID,
-                EMAILJS_TEMPLATE_ID,
+                process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || '',
+                process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || '',
                 templateParams
             );
 
