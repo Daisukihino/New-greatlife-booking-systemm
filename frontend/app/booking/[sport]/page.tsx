@@ -38,8 +38,8 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
         email: '',
         phone: '',
         people_count: 1,
-        start_time: '',
-        end_time: '',
+        start_time: '08:00',
+        end_time: '09:00',
         rental_option: ''
     });
 
@@ -152,25 +152,16 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
 
-        if (name === 'start_time') {
-            const startMins = timeToMinutes(value);
-            const operatingEnd = timeToMinutes('22:00');
-
-            // Suggest an end time 1 hour after start
-            const suggestedEndMins = Math.min(startMins + 60, operatingEnd);
-
-            setFormData(prev => ({
-                ...prev,
-                [name]: value,
-                end_time: minutesToTime(suggestedEndMins)
-            }));
-        } else {
-            setFormData(prev => ({ ...prev, [name]: value }));
-        }
+        setFormData(prev => ({ ...prev, [name]: value }));
 
         // Clear error when user starts typing
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: '' }));
+        }
+        
+        // Also clear 'time' error if start or end time changes
+        if ((name === 'start_time' || name === 'end_time') && errors.time) {
+            setErrors(prev => ({ ...prev, time: '' }));
         }
     };
 
@@ -416,7 +407,7 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
     }
 
     return (
-        <div className="min-h-screen bg-white font-[Alata] overflow-x-hidden">
+        <div className="min-h-screen bg-white bg-[url('/images/wave-background-image-2x.png')] bg-cover bg-top bg-no-repeat font-[Alata] overflow-x-hidden">
             <div className="tab-content active" id="booking">
                 <div className="max-w-[1200px] mx-auto px-5 py-12">
                     <div className="intro-container mb-12">
@@ -479,7 +470,7 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
                                         name="customer_name"
                                         value={formData.customer_name}
                                         onChange={handleInputChange}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black font-bold"
                                         placeholder="Enter your full name"
                                     />
                                     {errors.customer_name && <p className="text-red-600 text-sm mt-1">{errors.customer_name}</p>}
@@ -492,7 +483,7 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
                                         name="email"
                                         value={formData.email}
                                         onChange={handleInputChange}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black font-bold"
                                         placeholder="Enter your email"
                                     />
                                     <small className="text-gray-500 block mt-1">Only Gmail, Yahoo, Outlook, and other major providers accepted</small>
@@ -507,7 +498,7 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
                                         value={formData.phone}
                                         onChange={handleInputChange}
                                         maxLength={11}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black font-bold"
                                         placeholder="Enter your 11-digit phone number"
                                     />
                                     <small className="text-gray-500 block mt-1">Must be exactly 11 digits</small>
@@ -536,26 +527,120 @@ export default function BookingPage({ params }: { params: Promise<{ sport: strin
 
                                 <div className="form-group">
                                     <label className="block text-black font-bold mb-4">Preferred Time</label>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-600 mb-1">Start Time:</label>
-                                            <input
-                                                type="time"
-                                                name="start_time"
-                                                value={formData.start_time}
-                                                onChange={handleInputChange}
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 block text-black font-bold"
-                                            />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="space-y-2">
+                                                <label className="block text-sm font-medium text-gray-600">Start Time:</label>
+                                                <div className="flex gap-2 items-center">
+                                                    <select
+                                                        value={(() => {
+                                                            const h = parseInt(formData.start_time.split(':')[0]);
+                                                            const hour12 = h % 12 || 12;
+                                                            return String(hour12).padStart(2, '0');
+                                                        })()}
+                                                    onChange={(e) => {
+                                                        const ampm = parseInt(formData.start_time.split(':')[0]) >= 12 ? 'PM' : 'AM';
+                                                        let hour = parseInt(e.target.value.split(':')[0]);
+                                                        const m = formData.start_time.split(':')[1];
+                                                        if (ampm === 'PM' && hour < 12) hour += 12;
+                                                        if (ampm === 'AM' && hour === 12) hour = 0;
+                                                        setFormData({ ...formData, start_time: `${String(hour).padStart(2, '0')}:${m}` });
+                                                    }}
+                                                    className="flex-1 px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-black font-bold bg-white appearance-none"
+                                                >
+                                                    {[...Array(12)].map((_, i) => {
+                                                        const hr = String(i === 0 ? 12 : i).padStart(2, '0');
+                                                        return (
+                                                            <option key={`start-${hr}`} value={hr}>{hr}</option>
+                                                        );
+                                                    })}
+                                                </select>
+                                                <select
+                                                    value={formData.start_time.split(':')[1]}
+                                                    onChange={(e) => {
+                                                        const [h] = formData.start_time.split(':');
+                                                        setFormData({ ...formData, start_time: `${h}:${e.target.value}` });
+                                                    }}
+                                                    className="w-24 px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-black font-bold bg-white appearance-none text-center"
+                                                >
+                                                    {[...Array(60)].map((_, i) => {
+                                                        const minute = String(i).padStart(2, '0');
+                                                        return (
+                                                            <option key={`start-minute-${minute}`} value={minute}>{minute}</option>
+                                                        );
+                                                    })}
+                                                </select>
+                                                <select
+                                                    value={parseInt(formData.start_time.split(':')[0]) >= 12 ? 'PM' : 'AM'}
+                                                    onChange={(e) => {
+                                                        const [h, m] = formData.start_time.split(':');
+                                                        let hour = parseInt(h);
+                                                        if (e.target.value === 'PM' && hour < 12) hour += 12;
+                                                        if (e.target.value === 'AM' && hour >= 12) hour -= 12;
+                                                        setFormData({ ...formData, start_time: `${String(hour).padStart(2, '0')}:${m}` });
+                                                    }}
+                                                    className="w-24 px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-black font-bold bg-white appearance-none text-center"
+                                                >
+                                                    <option value="AM">AM</option>
+                                                    <option value="PM">PM</option>
+                                                </select>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-black mb-1">End Time:</label>
-                                            <input
-                                                type="time"
-                                                name="end_time"
-                                                value={formData.end_time}
-                                                onChange={handleInputChange}
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 block text-black font-bold"
-                                            />
+                                            <div className="space-y-2">
+                                                <label className="block text-sm font-medium text-black">End Time:</label>
+                                                <div className="flex gap-2 items-center">
+                                                    <select
+                                                        value={(() => {
+                                                            const h = parseInt(formData.end_time.split(':')[0]);
+                                                            const hour12 = h % 12 || 12;
+                                                            return String(hour12).padStart(2, '0');
+                                                        })()}
+                                                    onChange={(e) => {
+                                                        const ampm = parseInt(formData.end_time.split(':')[0]) >= 12 ? 'PM' : 'AM';
+                                                        let hour = parseInt(e.target.value.split(':')[0]);
+                                                        const m = formData.end_time.split(':')[1];
+                                                        if (ampm === 'PM' && hour < 12) hour += 12;
+                                                        if (ampm === 'AM' && hour === 12) hour = 0;
+                                                        setFormData({ ...formData, end_time: `${String(hour).padStart(2, '0')}:${m}` });
+                                                    }}
+                                                    className="flex-1 px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-black font-bold bg-white appearance-none"
+                                                >
+                                                    {[...Array(12)].map((_, i) => {
+                                                        const hr = String(i === 0 ? 12 : i).padStart(2, '0');
+                                                        return (
+                                                            <option key={`end-${hr}`} value={hr}>{hr}</option>
+                                                        );
+                                                    })}
+                                                </select>
+                                                <select
+                                                    value={formData.end_time.split(':')[1]}
+                                                    onChange={(e) => {
+                                                        const [h] = formData.end_time.split(':');
+                                                        setFormData({ ...formData, end_time: `${h}:${e.target.value}` });
+                                                    }}
+                                                    className="w-24 px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-black font-bold bg-white appearance-none text-center"
+                                                >
+                                                    {[...Array(60)].map((_, i) => {
+                                                        const minute = String(i).padStart(2, '0');
+                                                        return (
+                                                            <option key={`end-minute-${minute}`} value={minute}>{minute}</option>
+                                                        );
+                                                    })}
+                                                </select>
+                                                <select
+                                                    value={parseInt(formData.end_time.split(':')[0]) >= 12 ? 'PM' : 'AM'}
+                                                    onChange={(e) => {
+                                                        const [h, m] = formData.end_time.split(':');
+                                                        let hour = parseInt(h);
+                                                        if (e.target.value === 'PM' && hour < 12) hour += 12;
+                                                        if (e.target.value === 'AM' && hour >= 12) hour -= 12;
+                                                        setFormData({ ...formData, end_time: `${String(hour).padStart(2, '0')}:${m}` });
+                                                    }}
+                                                    className="w-24 px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-black font-bold bg-white appearance-none text-center"
+                                                >
+                                                    <option value="AM">AM</option>
+                                                    <option value="PM">PM</option>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
                                     <small className="text-gray-500 block mt-2">Operating hours: 8:00 AM - 10:00 PM. Maximum 4 hours per booking.</small>

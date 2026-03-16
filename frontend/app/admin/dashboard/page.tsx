@@ -630,8 +630,9 @@ export default function AdminDashboard() {
                     background: 'rgba(0,0,0,0.5)',
                     zIndex: 1000,
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
+                    alignItems: 'flex-start', //stick to top
+                    justifyContent: 'center', //center horizontally
+                    paddingTop: "40px",       // space from top
                 }} onClick={() => setSelectedBooking(null)}>
                     <div style={{
                         background: 'white',

@@ -18,15 +18,15 @@ export default function FAQsPage() {
     ];
 
     const developers = [
-        { name: "Peter Quirimit", role: "The back-end developer", desc: "Hi I'm Peter. I am the back-end developer of this smart web reservation system.", image: "https://i.pinimg.com/1200x/f9/b6/ee/f9b6ee085996dee0e22ddc52dda03ac2.jpg" },
+        { name: "Peter Quirimit", role: "The Project Manager", desc: "Hi I'm Peter. I am the Project Manager of this smart web reservation system.", image: "https://i.pinimg.com/1200x/f9/b6/ee/f9b6ee085996dee0e22ddc52dda03ac2.jpg" },
         { name: "Ella Estimada Grace", role: "The front-end developer", desc: "Hi im Ella I am one of the front-end developers of this smart web reservation system.", image: "https://i.pinimg.com/736x/f5/ef/69/f5ef690b6e4ecf123b5302914df2e81f.jpg" },
         { name: "Kate Margierette T. Gopez", role: "The front-end developer", desc: "Hi im Kate I am one of the front-end developers of this smart web reservation system.", image: "/images/katepic.jpg" },
-        { name: "Joanna Marie Andrada", role: "Researcher", desc: "Hello I'm Joanna. I'm one of the researchers behind this smart web reservation system", image: "https://i.pinimg.com/736x/3c/72/85/3c7285f171ad300081b4ba665522c4cb.jpg" },
-        { name: "Carmela", role: "Researcher", desc: "Hello I'm Carmela. I'm one of the researchers behind this smart web reservation system.", image: "https://i.pinimg.com/736x/0f/6c/3e/0f6c3e4ade014bbb84d0d9a4251f3800.jpg" },
+        { name: "Joanna Marie Andrada", role: "Researcher", desc: "Hello I'm Joanna. I'm one of the Researchers behind this smart web reservation system", image: "https://i.pinimg.com/736x/3c/72/85/3c7285f171ad300081b4ba665522c4cb.jpg" },
+        { name: "Carmela", role: "Researcher", desc: "Hello I'm Carmela. I'm one of the Researchers behind this smart web reservation system.", image: "https://i.pinimg.com/736x/0f/6c/3e/0f6c3e4ade014bbb84d0d9a4251f3800.jpg" },
         { name: "Davidson", role: "Senior Developer", desc: "Hello I'm Davidson. I am one of the Developers behind this smart web reservation system.", image: "https://i.pinimg.com/1200x/ef/11/17/ef1117832e90f93f5c403cdea6d77f2d.jpg" },
-        { name: "John Reynald", role: "Junior Developer", desc: "Hello I'm Reynald. I am one of the researchers behind this smart web reservation system.", image: "https://i.pinimg.com/736x/e0/df/2e/e0df2e89ed46a16d6f317e4590ee0ced.jpg" },
-        { name: "Ralph Raniel", role: "Researcher", desc: "Hello I'm Ralph. I am one of the researchers behind this smart web reservation system.", image: "https://i.pinimg.com/736x/c8/f5/a9/c8f5a905d349aebbc29804f76413a6d6.jpg" },
-        { name: "Justin Dave", role: "Researcher", desc: "Hello I'm Dave. I am one of the researchers behind this smart web reservation system.", image: "https://i.kym-cdn.com/editorials/icons/original/000/013/755/mon.jpg" },
+        { name: "John Reynald", role: "Junior Developer", desc: "Hello I'm Reynald. I am one of the Developers behind this smart web reservation system.", image: "https://i.pinimg.com/736x/e0/df/2e/e0df2e89ed46a16d6f317e4590ee0ced.jpg" },
+        { name: "Ralph Raniel", role: "Researcher", desc: "Hello I'm Ralph. I am one of the Researchers behind this smart web reservation system.", image: "https://i.pinimg.com/736x/c8/f5/a9/c8f5a905d349aebbc29804f76413a6d6.jpg" },
+        { name: "Justin Dave", role: "Researcher", desc: "Hello I'm Dave. I am one of the Researchers behind this smart web reservation system.", image: "https://i.kym-cdn.com/editorials/icons/original/000/013/755/mon.jpg" },
     ];
 
     return (
@@ -51,7 +51,7 @@ export default function FAQsPage() {
                     </div>
                 </div>
 
-                <div className="faq-container-kate">
+                <div className="faq-container">
                     <h2 className="faq-title-kate text-4xl font-bold mb-12">About the Developers</h2>
 
                     {/* Introduction Cards (Desktop Row) */}

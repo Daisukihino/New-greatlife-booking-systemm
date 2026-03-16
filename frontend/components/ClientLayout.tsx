@@ -13,6 +13,7 @@ export default function ClientLayout({
 
     // Check if the current path is an admin path or the login page
     const isDashboardPath = pathname?.startsWith('/admin') || pathname === '/login';
+    const isBookingPath = pathname?.startsWith('/booking');
 
     return (
         <>
@@ -20,7 +21,7 @@ export default function ClientLayout({
             <main className={!isDashboardPath ? "min-h-screen pt-20" : ""}>
                 {children}
             </main>
-            {!isDashboardPath && <Footer />}
+            {!isDashboardPath && !isBookingPath && <Footer />}
         </>
     );
 }
