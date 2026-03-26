@@ -6,6 +6,7 @@ import type {
     UpdateBookingData,
     AdminStats,
     MonthlyReport,
+    BookingHistoryEntry,
     ApiResponse,
     LoginResponse,
     BlockedSlot
@@ -186,6 +187,36 @@ class ApiClient {
         return this.request<MonthlyReport>(
             `/admin/reports?month=${month}&year=${year}`
         );
+    }
+
+    async getReportRange(
+        startDate: string,
+        endDate: string
+    ): Promise<ApiResponse<MonthlyReport>> {
+        const params = new URLSearchParams({ startDate, endDate });
+        return this.request<MonthlyReport>(`/admin/reports?${params.toString()}`);
+    }
+
+    async getBookingHistory(id: number): Promise<ApiResponse<BookingHistoryEntry[]>> {
+        return this.request<BookingHistoryEntry[]>(`/bookings/${id}/history`);
+    }
+
+    async markBookingPaid(
+        id: number,
+        paidBy: string,
+        options?: {
+            payment_method?: string;
+            payment_id?: string;
+        }
+    ): Promise<ApiResponse<Booking>> {
+        return this.request<Booking>(`/bookings/${id}/mark-paid`, {
+            method: 'PUT',
+            body: JSON.stringify({
+                paid_by: paidBy,
+                payment_method: options?.payment_method,
+                payment_id: options?.payment_id,
+            }),
+        });
     }
 
     // Blocked Slots endpoints

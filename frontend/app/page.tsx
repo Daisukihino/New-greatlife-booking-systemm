@@ -99,7 +99,7 @@ export default function HomePage() {
       {/* Services Section */}
       <section id="why" className="relative pt-20 pb-32">
         <div className="relative py-20 px-8 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "linear-gradient(rgba(0, 0, 100, 0.5), rgba(0, 0, 100, 0.6)), url('/images/sceneric.png')" }}>
-          <h3 className="text-center text-4xl mb-12 text-[#cdad7d] js-animate-on-scroll">More Than Just a Court</h3>
+          <h3 className="text-center text-4xl mb-12 text-[#cdad7d] js-animate-on-scroll">More Than Just a Gym</h3>
           <div className="flex flex-wrap justify-center gap-12 max-w-6xl mx-auto">
             <div className="border-2 border-[#cdad7d] p-6 w-72 h-80 transition-all js-animate-on-scroll why-us-card">
               <p className="text-white text-lg leading-relaxed">

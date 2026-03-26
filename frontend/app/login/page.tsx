@@ -10,6 +10,7 @@ export default function LoginPage() {
     const router = useRouter();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [isRobotChecked, setIsRobotChecked] = useState(false);
@@ -80,13 +81,22 @@ export default function LoginPage() {
                         <div className={styles.inputWithIcon}>
                             <i className="fas fa-lock"></i>
                             <input
-                                type="password"
+                                type={showPassword ? 'text' : 'password'}
                                 id="password"
                                 placeholder="Enter your password"
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                             />
+                            <button
+                                type="button"
+                                className={styles.passwordToggle}
+                                onClick={() => setShowPassword((current) => !current)}
+                                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                aria-pressed={showPassword}
+                            >
+                                <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                            </button>
                         </div>
                     </div>
 

@@ -2,9 +2,11 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
 
 export default function Navbar() {
+    const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
     const [isVisible, setIsVisible] = useState(true);
     const [lastScrollY, setLastScrollY] = useState(0);
@@ -34,6 +36,8 @@ export default function Navbar() {
         }
     }, [controlNavbar]);
 
+    const isBookingPath = pathname?.startsWith('/booking');
+
     const navItems = [
         { name: 'Home', href: '/#hero' },
         { name: 'About', href: '/#about' },
@@ -41,7 +45,7 @@ export default function Navbar() {
         { name: 'Services', href: '/#why' },
         { name: 'Membership', href: '/#membership' },
         { name: 'Contact', href: '/#contact', highlight: true },
-    ];
+    ].filter((item) => !(isBookingPath && item.name === 'About'));
 
     return (
         <>

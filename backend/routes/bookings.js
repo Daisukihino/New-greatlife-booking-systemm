@@ -76,6 +76,26 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// GET booking history by booking ID
+router.get('/:id/history', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const { data, error } = await supabase
+            .from('booking_history')
+            .select('*')
+            .eq('booking_id', id)
+            .order('created_at', { ascending: true });
+
+        if (error) throw error;
+
+        res.json({ success: true, data });
+    } catch (error) {
+        console.error('Error fetching booking history:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // POST create new booking
 router.post('/', async (req, res) => {
     try {
@@ -180,7 +200,7 @@ router.post('/', async (req, res) => {
                 booking_id: data.id,
                 action: 'created',
                 performed_by: customer_name,
-                changes: { status: 'pending' }
+                changes: { status: 'pending', payment_status: 'pending' }
             }]);
 
         res.status(201).json({ success: true, data });
@@ -248,7 +268,6 @@ router.put('/:id/approve', async (req, res) => {
             .from('bookings')
             .update({
                 status: 'confirmed',
-                payment_status: 'paid',
                 approved_by: approved_by || 'Admin',
                 approved_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
@@ -280,12 +299,88 @@ router.put('/:id/approve', async (req, res) => {
                 booking_id: id,
                 action: 'approved',
                 performed_by: approved_by || 'Admin',
-                changes: { status: 'confirmed', payment_status: 'paid' }
+                changes: { status: 'confirmed' }
             }]);
 
         res.json({ success: true, data });
     } catch (error) {
         console.error('Error approving booking:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// PUT mark booking as paid
+router.put('/:id/mark-paid', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { paid_by, payment_method, payment_id } = req.body;
+
+        const { data: booking, error: fetchError } = await supabase
+            .from('bookings')
+            .select('id, status, payment_status')
+            .eq('id', id)
+            .single();
+
+        if (fetchError) throw fetchError;
+
+        if (!booking) {
+            return res.status(404).json({ success: false, error: 'Booking not found' });
+        }
+
+        if (booking.status !== 'confirmed') {
+            return res.status(400).json({
+                success: false,
+                error: 'Only confirmed bookings can be marked as paid'
+            });
+        }
+
+        if (booking.payment_status === 'paid') {
+            return res.status(400).json({
+                success: false,
+                error: 'Booking is already marked as paid'
+            });
+        }
+
+        const updates = {
+            payment_status: 'paid',
+            updated_at: new Date().toISOString()
+        };
+
+        if (payment_method) updates.payment_method = payment_method;
+        if (payment_id) updates.payment_id = payment_id;
+
+        const { data, error } = await supabase
+            .from('bookings')
+            .update(updates)
+            .eq('id', id)
+            .select(`
+        *,
+        sports (
+          name,
+          display_name,
+          price
+        )
+      `)
+            .single();
+
+        if (error) throw error;
+
+        await supabase
+            .from('booking_history')
+            .insert([{
+                booking_id: id,
+                action: 'paid',
+                performed_by: paid_by || 'Admin',
+                changes: {
+                    payment_status: 'paid',
+                    ...(payment_method ? { payment_method } : {}),
+                    ...(payment_id ? { payment_id } : {})
+                }
+            }]);
+
+        res.json({ success: true, data });
+    } catch (error) {
+        console.error('Error marking booking as paid:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
